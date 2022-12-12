@@ -1,0 +1,13 @@
+services:
+  nginx-website:
+    restart: always
+    labels:
+      # make traefik use this sub-domain in entrypoint "https-ep" (as defined in traefik's docker-compose.base.yml)
+      # we enable HTTP for localhost only, and HTTPS for the "real" hostname
+      - traefik.http.routers.nginx-website-service.entrypoints=https-ep
+      - traefik.http.routers.nginx-website-service.rule=Host(`website.${HOSTNAME:?err}`)
+      - traefik.http.routers.nginx-website-service.tls=true
+      - traefik.http.routers.nginx-website-service.tls.certresolver=le
+
+      # enable basic auth as defined in traefik's docker compose file
+      - traefik.http.routers.nginx-website-service.middlewares=my-basic-auth

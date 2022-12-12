@@ -1,1 +1,6 @@
 /.venv38/
+*.pyc
+/traefik/traefik-public-certificates/acme.json
+/.idea
+*.log
+.env

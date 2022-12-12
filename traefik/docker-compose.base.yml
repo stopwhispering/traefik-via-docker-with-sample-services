@@ -1,0 +1,38 @@
+version: "3.3"
+
+services:
+  reverse-proxy:
+    image: traefik:v2.9
+    container_name: "traefik-container"   # docker name as shown via "docker container ls"
+    ports:
+      # we will allow port 80 only in dev environment and redirect http to https in prod environment
+      - "80:80"
+      - "443:443"
+    volumes:
+      # add Docker as a mounted volume, so that Traefik can listen to the
+      # Docker events; "docker.sock" is the UNIX socket that Docker daemon is listening to.
+      # It's the main entry point for Docker API; traefik will use it to auto-discover newly created containers
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+#    command:
+      # note: command is not merged in case of multiple compose files
+
+    networks:
+      # The Traefik container has to be attached to the same network
+      # as the containers to be exposed.
+      - traefik-public
+
+    labels:
+      # enable Traefik dashboard using standard service called "api@internal"
+      - traefik.enable=true
+      - traefik.http.routers.api-service.service=api@internal
+
+      # basic auth; create user/pass with "wsl htpasswd -nbB user password | wsl sed -e s/\\$/\\$\\$/g"
+      # must be explicitly enabled for each service that should be protected
+      - traefik.http.middlewares.my-basic-auth.basicauth.users=${BASIC_AUTH_CREDENTIALS:?err}
+
+networks:
+  # use the previously created public network "traefik-public"
+  # create at first time via "docker network create traefik-public"
+  traefik-public:
+      external: true

@@ -1,0 +1,46 @@
+version: "3.3"
+
+services:
+  reverse-proxy:
+    restart: always
+    volumes:
+      # mount named volume to store HTTPS certificates
+      - traefik-public-certificates:/certificates
+    command:
+      # note: command is not merged in case of multiple compose files
+      # allow Traefik to gather configuration from Docker, so that it can read labels from Docker services
+      - --providers.docker=true
+      # do not expose Docker containers unless explicitly exposed via label "traefik.enable=true"
+      - --providers.docker.exposedbydefault=false
+      # enable the access log for HTTP requests and the Traefik log for configurations and errors
+      - --accesslog
+      - --log
+      # enable the dashboard (also see ...base.yml)
+      - --api.dashboard=true
+
+      # create entrypoints "HTTP-EP" & "HTTPS-EP" (could have any name) listening on port 80 and 443, respectively
+      - --entrypoints.http-ep.address=:80
+      - --entrypoints.https-ep.address=:443
+
+      # create the certificate resolver for "let's encrypt" & store the LE certificates in the mounted volume; use
+      # TLS challenge for LE
+      - --certificatesresolvers.le.acme.email=${LETS_ENCRYPT_EMAIL:?err}
+      - --certificatesresolvers.le.acme.storage=/certificates/acme.json
+      - --certificatesresolvers.le.acme.tlschallenge=true
+
+      # Global redirect HTTP -> HTTPS
+      - --entrypoints.http-ep.http.redirections.entryPoint.to=https-ep
+      - --entrypoints.http-ep.http.redirections.entryPoint.scheme=https
+
+    labels:
+      # define routes to our endpoint
+      - traefik.http.routers.api-service.entrypoints=https-ep
+      - traefik.http.routers.api-service.rule=Host(`traefik.${HOSTNAME:?err}`)
+      - traefik.http.routers.api-service.tls.certresolver=le
+
+      # enable basic auth for dashboard
+      - traefik.http.routers.api-service.middlewares=my-basic-auth
+
+volumes:
+    # create a named volume to store HTTPS certificates
+    traefik-public-certificates:

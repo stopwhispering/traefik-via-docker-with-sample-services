@@ -1,0 +1,24 @@
+services:
+  nginx-website:
+    image: nginx:latest
+    container_name: nginx-website-container_name
+
+    labels:
+      # enable traefik for this specific service
+      - traefik.enable=true
+      # use the traefik-public network (declared below)
+      - traefik.docker.network=traefik-public
+
+    volumes:
+      # this  establishes a bind mount, i.e. it will <<not>> duplicate data into the image, but the actual
+      # source folder is accessed from within. When changing the contents, the container is affected as well.
+      - ./html:/usr/share/nginx/html
+
+    networks:
+      - traefik-public
+
+networks:
+  # use the previously created public network "traefik-public"
+  # create at first time via "docker network create traefik-public"
+  traefik-public:
+    external: true

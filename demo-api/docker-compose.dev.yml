@@ -1,0 +1,6 @@
+services:
+  demo-api:
+    restart: on-failure
+    labels:
+      - traefik.http.routers.demo-api-inscecure.entrypoints=http-ep
+      - traefik.http.routers.demo-api-inscecure.rule=Host(`demo-api.localhost`)

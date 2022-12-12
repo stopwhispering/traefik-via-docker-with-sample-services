@@ -1,0 +1,25 @@
+version: "3.3"
+
+services:
+  reverse-proxy:
+    restart: unless-stopped
+    command:
+      # note: command is not merged in case of multiple compose files
+      # allow Traefik to gather configuration from Docker, so that it can read labels from Docker services
+      - --providers.docker=true
+      # do not expose Docker containers unless explicitly exposed via label "traefik.enable=true"
+      - --providers.docker.exposedbydefault=false
+      # enable the access log for HTTP requests and the Traefik log for configurations and errors
+      - --accesslog
+      - --log
+      # enable the dashboard (also see ...base.yml)
+      - --api.dashboard=true
+
+      # create an entrypoint "HTTP-EP" (could have any name) listening on port 80
+      - --entrypoints.http-ep.address=:80
+
+
+    labels:
+      # define routes to our endpoint
+      - traefik.http.routers.api-service.entrypoints=http-ep
+      - traefik.http.routers.api-service.rule=Host(`traefik.localhost`)

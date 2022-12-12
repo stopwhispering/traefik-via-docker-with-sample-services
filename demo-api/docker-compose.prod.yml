@@ -1,0 +1,11 @@
+services:
+  demo-api:
+    restart: always
+    labels:
+      - traefik.http.routers.demo-api.entrypoints=https-ep
+      - traefik.http.routers.demo-api.rule=Host(`demo-api.${HOSTNAME:?err}`)
+      - traefik.http.routers.demo-api.tls=true
+      - traefik.http.routers.demo-api.tls.certresolver=le
+
+      # enable basic auth as defined in traefik's docker compose file
+      - traefik.http.routers.demo-api.middlewares=my-basic-auth
