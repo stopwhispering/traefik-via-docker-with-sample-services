@@ -14,10 +14,15 @@ Traefik sample configuration with Docker containers for FastAPI, Whoami and NGIN
 
 ### Prerequisites
 Generate a username/hashed password combination for basic auth via
-    
+
     # Linux:
-    htpasswd -nbB user password | sed -e s/\\$/\\$\\$/g
+    htpasswd -nbB user password
     # Windows/WSL:
+    wsl htpasswd -nbB user password
+
+    # Note: If you enter user/pass directly into the docker-compose file, you need to escape 
+    # the $ character with another $ character:
+    htpasswd -nbB user password | sed -e s/\\$/\\$\\$/g
     wsl htpasswd -nbB user password | wsl sed -e s/\\$/\\$\\$/g
 
 Create .env file with the following content:
